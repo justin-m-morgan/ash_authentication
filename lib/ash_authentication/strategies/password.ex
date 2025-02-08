@@ -94,9 +94,15 @@ defmodule AshAuthentication.Strategy.Password do
   See the [Testing guide](/documentation/topics/testing.md) for tips on testing resources using this strategy.
   """
 
+  @hash_provider Application.compile_env(
+                   :ash_authentication,
+                   :hash_provider,
+                   AshAuthentication.BcryptProvider
+                 )
+
   defstruct require_confirmed_with: nil,
             confirmation_required?: false,
-            hash_provider: AshAuthentication.BcryptProvider,
+            hash_provider: @hash_provider,
             hashed_password_field: :hashed_password_field,
             identity_field: :username,
             name: nil,

@@ -10,7 +10,13 @@ config :ash_authentication, Example.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10
 
+config :argon2_elixir,
+  t_cost: 1,
+  m_cost: 8
+
 config :bcrypt_elixir, :log_rounds, 4
+
+config :pbkdf2_elixir, :rounds, 1
 
 config :ash, :disable_async?, true
 
