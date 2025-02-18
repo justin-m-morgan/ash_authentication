@@ -8,6 +8,8 @@ defmodule AshAuthentication.TokenResource.Actions do
 
   import AshAuthentication.Utils
 
+  require Logger
+
   @doc false
   @spec read_expired(Resource.t(), keyword) :: {:ok, [Resource.record()]} | {:error, any}
   def read_expired(resource, opts \\ []) do
@@ -81,10 +83,25 @@ defmodule AshAuthentication.TokenResource.Actions do
             %{"token" => token},
             Keyword.put(opts, :domain, domain)
           )
+          |> Ash.ActionInput.set_context(%{
+            private: %{
+              ash_authentication?: true
+            }
+          })
           |> Ash.run_action()
           |> case do
-            {:ok, value} -> value
-            _ -> false
+            {:ok, value} ->
+              value
+
+            {:error, error} ->
+              Logger.error("""
+              Error while checking if token is revoked.
+              We must assume that it is revoked for security purposes.
+
+              #{Exception.format(:error, error)}
+              """)
+
+              true
           end
 
         :read ->
@@ -102,9 +119,21 @@ defmodule AshAuthentication.TokenResource.Actions do
           )
           |> Ash.read()
           |> case do
-            {:ok, []} -> false
-            {:ok, _} -> true
-            _ -> false
+            {:ok, []} ->
+              false
+
+            {:ok, _} ->
+              true
+
+            {:error, error} ->
+              Logger.error("""
+              Error while checking if token is revoked.
+              We must assume that it is revoked for security purposes.
+
+              #{Exception.format(:error, error)}
+              """)
+
+              true
           end
       end
     end
@@ -129,12 +158,34 @@ defmodule AshAuthentication.TokenResource.Actions do
           |> Ash.ActionInput.for_action(
             is_revoked_action_name,
             %{"jti" => jti},
-            Keyword.put(opts, :domain, domain)
+            Keyword.take(Keyword.put(opts, :domain, domain), [
+              :actor,
+              :authorize?,
+              :context,
+              :tenant,
+              :tracer,
+              :domain
+            ])
           )
+          |> Ash.ActionInput.set_context(%{
+            private: %{
+              ash_authentication?: true
+            }
+          })
           |> Ash.run_action()
           |> case do
-            {:ok, value} -> value
-            _ -> false
+            {:ok, value} ->
+              value
+
+            {:error, error} ->
+              Logger.error("""
+              Error while checking if token is revoked.
+              We must assume that it is revoked for security purposes.
+
+              #{Exception.format(:error, error)}
+              """)
+
+              true
           end
 
         :read ->
@@ -148,13 +199,32 @@ defmodule AshAuthentication.TokenResource.Actions do
           |> Query.for_read(
             is_revoked_action_name,
             %{"jti" => jti},
-            Keyword.put(opts, :domain, domain)
+            Keyword.take(Keyword.put(opts, :domain, domain), [
+              :actor,
+              :authorize?,
+              :context,
+              :tenant,
+              :tracer,
+              :domain
+            ])
           )
           |> Ash.read()
           |> case do
-            {:ok, []} -> false
-            {:ok, _} -> true
-            _ -> false
+            {:ok, []} ->
+              false
+
+            {:ok, _} ->
+              true
+
+            {:error, error} ->
+              Logger.error("""
+              Error while checking if token is revoked.
+              We must assume that it is revoked for security purposes.
+
+              #{Exception.format(:error, error)}
+              """)
+
+              true
           end
       end
     end
@@ -237,8 +307,18 @@ defmodule AshAuthentication.TokenResource.Actions do
       resource
       |> Query.new()
       |> Query.set_context(%{private: %{ash_authentication?: true}})
-      |> Query.for_read(get_token_action_name, params, opts)
-      |> Ash.read(domain: domain)
+      |> Query.for_read(
+        get_token_action_name,
+        params,
+        Keyword.take(Keyword.put(opts, :domain, domain), [
+          :actor,
+          :authorize?,
+          :tenant,
+          :tracer,
+          :domain
+        ])
+      )
+      |> Ash.read()
     end
   end
 

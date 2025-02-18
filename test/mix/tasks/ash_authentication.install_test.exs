@@ -82,11 +82,18 @@ defmodule Mix.Tasks.AshAuthentication.InstallTest do
       end
 
       authentication do
+        add_ons do
+          log_out_everywhere do
+            apply_on_password_change?(true)
+          end
+        end
+
         tokens do
           enabled?(true)
           token_resource(Test.Accounts.Token)
           signing_secret(Test.Secrets)
           store_all_tokens?(true)
+          require_token_presence_for_authentication?(true)
         end
       end
 
@@ -142,8 +149,6 @@ defmodule Mix.Tasks.AshAuthentication.InstallTest do
       end
 
       attributes do
-        uuid_primary_key(:id)
-
         attribute :jti, :string do
           primary_key?(true)
           public?(true)
@@ -153,10 +158,12 @@ defmodule Mix.Tasks.AshAuthentication.InstallTest do
 
         attribute :subject, :string do
           allow_nil?(false)
+          public?(true)
         end
 
         attribute :expires_at, :utc_datetime do
           allow_nil?(false)
+          public?(true)
         end
 
         attribute :purpose, :string do
@@ -189,10 +196,10 @@ defmodule Mix.Tasks.AshAuthentication.InstallTest do
           prepare(AshAuthentication.TokenResource.GetTokenPreparation)
         end
 
-        action :revoked? do
+        action :revoked?, :boolean do
           description("Returns true if a revocation token is found for the provided token")
-          argument(:token, :string, sensitive?: true, allow_nil?: false)
-          argument(:jti, :string, sensitive?: true, allow_nil?: false)
+          argument(:token, :string, sensitive?: true)
+          argument(:jti, :string, sensitive?: true)
 
           run(AshAuthentication.TokenResource.IsRevoked)
         end
@@ -218,6 +225,13 @@ defmodule Mix.Tasks.AshAuthentication.InstallTest do
         destroy :expunge_expired do
           description("Deletes expired tokens.")
           change(filter(expr(expires_at < now())))
+        end
+
+        update :revoke_all_stored_for_subject do
+          description("Revokes all stored tokens for a specific subject.")
+          accept([:extra_data])
+          argument(:subject, :string, allow_nil?: false, sensitive?: true)
+          change(AshAuthentication.TokenResource.RevokeAllStoredForSubjectChange)
         end
       end
     end

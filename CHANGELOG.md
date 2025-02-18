@@ -5,6 +5,41 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [v4.5.1](https://github.com/team-alembic/ash_authentication/compare/v4.5.0...v4.5.1) (2025-02-14)
+
+
+
+
+### Improvements:
+
+* note on token error about upgrading ash_postgres
+
+## [v4.5.0](https://github.com/team-alembic/ash_authentication/compare/v4.4.9...v4.5.0) (2025-02-13)
+
+
+
+
+### Features:
+
+* Add a `log_out_everywhere` add-on (#907)
+
+* Add a `log_out_everywhere` add-on
+
+### Bug Fixes:
+
+* ensure that the token resource has only `:jti` as a primary key (#908)
+
+* Sign in tokens only last 60 seconds, but they should still be revoked after use. (#906)
+
+## [v4.4.9](https://github.com/team-alembic/ash_authentication/compare/v4.4.8...v4.4.9) (2025-02-11)
+
+
+
+
+### Bug Fixes:
+
+* Ensure that installer generated token revocation checking action is correct. (#905)
+
 ## [v4.4.8](https://github.com/team-alembic/ash_authentication/compare/v4.4.7...v4.4.8) (2025-02-04)
 
 
